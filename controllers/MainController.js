@@ -181,6 +181,7 @@ const readDataAirPerWeek = async (req, res) => {
   }
 };
 
+
 const readDataTempraturePerWeek = async (req, res) => {
   try {
     const startDate = req.query.startDate;
