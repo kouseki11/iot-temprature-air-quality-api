@@ -75,6 +75,63 @@ const readDataAirPerDay = async (req, res) => {
   }
 };
 
+const readAverageDataAirPerDay = async (req, res) => {
+  try {
+    const tanggal = req.query.date;
+    const mainRef = db.collection("main");
+
+    // Query the Firestore collection for documents matching the specified "tanggal"
+    const querySnapshot = await mainRef.where("tanggal", "==", tanggal).get();
+
+    if (querySnapshot.empty) {
+      return res
+        .status(404)
+        .json({ message: "No data found for the specified date" });
+    }
+
+    let totalUdara = 0; // Initialize total udara
+    let dataCount = 0; // Initialize data count
+
+    querySnapshot.forEach((doc) => {
+      const item = {
+        udara: doc.data().udara,
+        valueUdara: doc.data().valueUdara,
+      };
+      totalUdara += doc.data().udara; // Add udara value to the total
+      dataCount++; // Increment data count
+    });
+
+    const averageUdara = totalUdara / dataCount; // Calculate average udara
+    const averageUdaraB = Math.round(averageUdara);
+
+    let valueAverageUdara = ''; // Declare valueAverageUdara as a variable
+
+    if (averageUdaraB <= 50) {
+      valueAverageUdara = "Very Good";
+    } else if (averageUdaraB <= 100) {
+      valueAverageUdara = "Good";
+    } else if (averageUdaraB <= 150) {
+      valueAverageUdara = "Medium";
+    } else if (averageUdaraB <= 200) {
+      valueAverageUdara = "Bad";
+    } else if (averageUdaraB <= 300) {
+      valueAverageUdara = "Very Bad";
+    } else {
+      valueAverageUdara = "Very Very Bad";
+    }
+
+    res.json({
+      averageUdara: averageUdaraB,
+      valueAverageUdara: valueAverageUdara, // Include valueAverageUdara in the response
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+
 const readDataTempraturePerDay = async (req, res) => {
   try {
     const tanggal = req.query.date;
@@ -548,6 +605,7 @@ module.exports = {
   readDataTempraturePerDay,
   readDataTempraturePerWeek,
   readDataTempraturePerMonth,
+  readAverageDataAirPerDay,
 };
 
 // Using Database Realtime
