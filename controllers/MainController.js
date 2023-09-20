@@ -460,7 +460,7 @@ const createData = async (req, res) => {
     const { suhu, udara } = req.body;
 
     const currentTime = new Date();
-    const formattedTime = moment().format('hh:mm A');
+    const formattedTime = moment().format('HH.mm');
     const formattedDate = moment().format('DD-MM-YYYY');
 
     const hours = currentTime.getHours();
