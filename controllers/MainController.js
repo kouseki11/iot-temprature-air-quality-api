@@ -130,8 +130,6 @@ const readAverageDataAirPerDay = async (req, res) => {
 };
 
 
-
-
 const readDataTempraturePerDay = async (req, res) => {
   try {
     const tanggal = req.query.date;
@@ -146,22 +144,17 @@ const readDataTempraturePerDay = async (req, res) => {
         .json({ message: "No data found for the specified date" });
     }
 
-    const data = {
-      main: {},
-    };
+    const data = []
 
     querySnapshot.forEach((doc) => {
-      const jam = doc.data().jam;
-
-      if (!data.main[jam]) {
-        data.main[jam] = {
+        const item = {
           suhu: doc.data().suhu,
           valueSuhu: doc.data().valueSuhu,
           jam: doc.data().jam,
           tanggal: doc.data().tanggal,
           dateTime: doc.data().dateTime,
         };
-      }
+        data.push(item)
     });
 
     res.json(data);
@@ -169,6 +162,61 @@ const readDataTempraturePerDay = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+const readAverageDataTempraturePerDay = async (req, res) => {
+  try {
+    const tanggal = req.query.date;
+    const mainRef = db.collection("main");
+
+    // Query the Firestore collection for documents matching the specified "tanggal"
+    const querySnapshot = await mainRef.where("tanggal", "==", tanggal).get();
+
+    if (querySnapshot.empty) {
+      return res
+        .status(404)
+        .json({ message: "No data found for the specified date" });
+    }
+
+    let totalSuhu = 0; // Initialize total Suhu
+    let dataCount = 0; // Initialize data count
+
+    querySnapshot.forEach((doc) => {
+      const item = {
+        suhu: doc.data().suhu,
+        valueSuhu: doc.data().valueSuhu,
+      };
+      totalSuhu += doc.data().suhu; // Add Suhu value to the total
+      dataCount++; // Increment data count
+    });
+
+    const averageSuhu = totalSuhu / dataCount; // Calculate average Suhu
+    const averageSuhuB = Math.round(averageSuhu);
+
+    let valueAverageSuhu = ''; // Declare valueAverageSuhu as a variable
+
+      if (averageSuhuB <= 0) {
+      valueAverageSuhu = "Extreme Cold";
+    } else if (averageSuhuB <= 10) {
+      valueAverageSuhu = "Cold";
+    } else if (averageSuhuB <= 20) {
+      valueAverageSuhu = "Cool";
+    } else if (averageSuhuB <= 30) {
+      valueAverageSuhu = "Warm";
+    } else if (averageSuhuB <= 40) {
+      valueAverageSuhu = "Hot";
+    } else {
+      valueAverageSuhu = "Extreme Hot";
+    }
+
+    res.json({
+      averageSuhu: averageSuhuB,
+      valueAverageSuhu: valueAverageSuhu, // Include valueAverageSuhu in the response
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 const readDataAirPerWeek = async (req, res) => {
   try {
@@ -606,6 +654,7 @@ module.exports = {
   readDataTempraturePerWeek,
   readDataTempraturePerMonth,
   readAverageDataAirPerDay,
+  readAverageDataTempraturePerDay
 };
 
 // Using Database Realtime
