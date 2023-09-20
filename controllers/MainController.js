@@ -518,7 +518,7 @@ const createData = async (req, res) => {
       valueSuhu: valueSuhu,
       udara: udara,
       valueUdara: valueUdara,
-      jam: formattedTime,
+      jam: formattedHour,
       tanggal: formattedDate,
       dateTime: currentTime,
     });
