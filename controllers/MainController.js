@@ -1,19 +1,16 @@
-const admin = require('firebase-admin');
-const moment = require('moment');
-const getWeekNumber = require('../utils/getWeekNumber')
+const admin = require("firebase-admin");
+const moment = require("moment");
+const getWeekNumber = require("../utils/getWeekNumber");
 
 // Initialize Firebase Firestore
 const db = admin.firestore();
 
 const readData = async (req, res) => {
   try {
-    const mainRef = db.collection('main');
+    const tanggal = req.query.date;
+    const mainRef = db.collection("main");
 
-    const querySnapshot = await mainRef.get();
-
-    if (querySnapshot.empty) {
-      return res.status(404).json({ message: 'No data found' });
-    }
+    const querySnapshot = await mainRef.where("tanggal", "==", tanggal).get();
 
     const data = {
       main: {},
@@ -31,10 +28,10 @@ const readData = async (req, res) => {
         suhu: doc.data().suhu,
         valueSuhu: doc.data().valueSuhu,
         udara: doc.data().udara,
-        valueUdara: doc.data().valueUdara, 
-        jam: doc.data().jam, 
+        valueUdara: doc.data().valueUdara,
+        jam: doc.data().jam,
         tanggal: doc.data().tanggal,
-        dateTime: doc.data().dateTime
+        dateTime: doc.data().dateTime,
       });
     });
 
@@ -44,37 +41,32 @@ const readData = async (req, res) => {
   }
 };
 
-
-
 const readDataAirPerDay = async (req, res) => {
   try {
-    const tanggal = req.query.date; 
-    const mainRef = db.collection('main');
-    
+    const tanggal = req.query.date;
+    const mainRef = db.collection("main");
+
     // Query the Firestore collection for documents matching the specified "tanggal"
-    const querySnapshot = await mainRef.where('tanggal', '==', tanggal).get();
+    const querySnapshot = await mainRef.where("tanggal", "==", tanggal).get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: 'No data found for the specified date' });
+      return res
+        .status(404)
+        .json({ message: "No data found for the specified date" });
     }
 
-    const data = {
-      main: {},
-    };
+    let data = [];
 
     querySnapshot.forEach((doc) => {
-      const jam = doc.data().jam;
-
-
-      if (!data.main[jam]) {
-        data.main[jam] = {
-          udara: doc.data().udara,
-          valueUdara: doc.data().valueUdara,
-          jam: doc.data().jam,
-          tanggal: doc.data().tanggal,
-          dateTime: doc.data().dateTime,
-        };
-      }
+      const item = {
+        id: doc.id,
+        udara: doc.data().udara,
+        valueUdara: doc.data().valueUdara,
+        jam: doc.data().jam,
+        tanggal: doc.data().tanggal,
+        dateTime: doc.data().dateTime,
+      };
+      data.push(item); // Menyimpan data dalam array
     });
 
     res.json(data);
@@ -85,14 +77,16 @@ const readDataAirPerDay = async (req, res) => {
 
 const readDataTempraturePerDay = async (req, res) => {
   try {
-    const tanggal = req.query.date; 
-    const mainRef = db.collection('main');
-    
+    const tanggal = req.query.date;
+    const mainRef = db.collection("main");
+
     // Query the Firestore collection for documents matching the specified "tanggal"
-    const querySnapshot = await mainRef.where('tanggal', '==', tanggal).get();
+    const querySnapshot = await mainRef.where("tanggal", "==", tanggal).get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: 'No data found for the specified date' });
+      return res
+        .status(404)
+        .json({ message: "No data found for the specified date" });
     }
 
     const data = {
@@ -101,7 +95,6 @@ const readDataTempraturePerDay = async (req, res) => {
 
     querySnapshot.forEach((doc) => {
       const jam = doc.data().jam;
-
 
       if (!data.main[jam]) {
         data.main[jam] = {
@@ -120,67 +113,66 @@ const readDataTempraturePerDay = async (req, res) => {
   }
 };
 
-
-
 const readDataAirPerWeek = async (req, res) => {
   try {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
 
-    const mainRef = db.collection('main');
+    const mainRef = db.collection("main");
 
     const querySnapshot = await mainRef
-      .where('tanggal', '>=', startDate)
-      .where('tanggal', '<=', endDate)
+      .where("tanggal", ">=", startDate)
+      .where("tanggal", "<=", endDate)
       .get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: 'No data found' });
+      return res.status(404).json({ message: "No data found" });
     }
 
-    const data = {
-      main: {},
-    };
+    const data = {};
 
     querySnapshot.forEach((doc) => {
       const tanggal = doc.data().tanggal;
       const udara = Math.round(doc.data().udara);
 
-      if (!data.main[tanggal]) {
-        data.main[tanggal] = {
-          udara: [],
+      if (!data[tanggal]) {
+        data[tanggal] = {
           valueUdara: "",
+          rataRataUdara: 0,
         };
       }
 
-      data.main[tanggal].udara.push(udara);
-
       // Menghitung valueUdara berdasarkan udara
       if (udara <= 50) {
-        data.main[tanggal].valueUdara = "Very Good";
+        data[tanggal].valueUdara = "Very Good";
       } else if (udara <= 100) {
-        data.main[tanggal].valueUdara = "Good";
+        data[tanggal].valueUdara = "Good";
       } else if (udara <= 150) {
-        data.main[tanggal].valueUdara = "Medium";
+        data[tanggal].valueUdara = "Medium";
       } else if (udara <= 200) {
-        data.main[tanggal].valueUdara = "Bad";
+        data[tanggal].valueUdara = "Bad";
       } else if (udara <= 300) {
-        data.main[tanggal].valueUdara = "Very Bad";
+        data[tanggal].valueUdara = "Very Bad";
       } else {
-        data.main[tanggal].valueUdara = "Very Very Bad";
+        data[tanggal].valueUdara = "Very Very Bad";
       }
+
+      // Add udara value to an array if needed
+      if (!data[tanggal].udara) {
+        data[tanggal].udara = [];
+      }
+      data[tanggal].udara.push(udara);
     });
 
     // Menghitung rata-rata suhu dan udara per hari
-    Object.keys(data.main).forEach((tanggal) => {
-      const udara = data.main[tanggal].udara;
+    Object.keys(data).forEach((tanggal) => {
+      const udara = data[tanggal].udara;
+      const rataRataUdara =
+        udara.reduce((acc, val) => acc + val, 0) / udara.length;
+      data[tanggal].rataRataUdara = Math.round(rataRataUdara);
 
-      const rataRataUdara = udara.reduce((acc, val) => acc + val, 0) / udara.length;
-
-      data.main[tanggal].rataRataUdara = Math.round(rataRataUdara);
-
-      // Menghapus array suhu dan udara asli jika tidak diperlukan
-      delete data.main[tanggal].udara;
+      // Remove the udara array if it's no longer needed
+      delete data[tanggal].udara;
     });
 
     res.json(data);
@@ -194,15 +186,15 @@ const readDataTempraturePerWeek = async (req, res) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
 
-    const mainRef = db.collection('main');
+    const mainRef = db.collection("main");
 
     const querySnapshot = await mainRef
-      .where('tanggal', '>=', startDate)
-      .where('tanggal', '<=', endDate)
+      .where("tanggal", ">=", startDate)
+      .where("tanggal", "<=", endDate)
       .get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: 'No data found' });
+      return res.status(404).json({ message: "No data found" });
     }
 
     const data = {
@@ -242,7 +234,8 @@ const readDataTempraturePerWeek = async (req, res) => {
     Object.keys(data.main).forEach((tanggal) => {
       const suhu = data.main[tanggal].suhu;
 
-      const rataRataSuhu = suhu.reduce((acc, val) => acc + val, 0) / suhu.length;
+      const rataRataSuhu =
+        suhu.reduce((acc, val) => acc + val, 0) / suhu.length;
 
       data.main[tanggal].rataRataSuhu = Math.round(rataRataSuhu);
 
@@ -256,21 +249,20 @@ const readDataTempraturePerWeek = async (req, res) => {
   }
 };
 
-
 const readDataAirPerMonth = async (req, res) => {
   try {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
 
-    const mainRef = db.collection('main');
+    const mainRef = db.collection("main");
 
     const querySnapshot = await mainRef
-      .where('tanggal', '>=', startDate)
-      .where('tanggal', '<=', endDate)
+      .where("tanggal", ">=", startDate)
+      .where("tanggal", "<=", endDate)
       .get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: 'No data found' });
+      return res.status(404).json({ message: "No data found" });
     }
 
     const data = {
@@ -282,7 +274,7 @@ const readDataAirPerMonth = async (req, res) => {
       const udara = Math.round(doc.data().udara);
 
       // Extract year, month, and week from the date
-      const dateParts = tanggal.split('-');
+      const dateParts = tanggal.split("-");
       const year = dateParts[0];
       const month = dateParts[1];
       const day = dateParts[2];
@@ -324,7 +316,6 @@ const readDataAirPerMonth = async (req, res) => {
       } else {
         data.main[monthKey][weekKey].valueUdara = "Very Very Bad";
       }
-
     });
 
     // Calculate the overall averages per month and week
@@ -332,7 +323,8 @@ const readDataAirPerMonth = async (req, res) => {
       Object.keys(data.main[monthKey]).forEach((weekKey) => {
         const udara = data.main[monthKey][weekKey].udara;
 
-        const rataRataUdara = udara.reduce((acc, val) => acc + val, 0) / udara.length;
+        const rataRataUdara =
+          udara.reduce((acc, val) => acc + val, 0) / udara.length;
 
         data.main[monthKey][weekKey].udara = Math.round(rataRataUdara);
       });
@@ -349,15 +341,15 @@ const readDataTempraturePerMonth = async (req, res) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
 
-    const mainRef = db.collection('main');
+    const mainRef = db.collection("main");
 
     const querySnapshot = await mainRef
-      .where('tanggal', '>=', startDate)
-      .where('tanggal', '<=', endDate)
+      .where("tanggal", ">=", startDate)
+      .where("tanggal", "<=", endDate)
       .get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: 'No data found' });
+      return res.status(404).json({ message: "No data found" });
     }
 
     const data = {
@@ -369,7 +361,7 @@ const readDataTempraturePerMonth = async (req, res) => {
       const suhu = Math.round(doc.data().suhu);
 
       // Extract year, month, and week from the date
-      const dateParts = tanggal.split('-');
+      const dateParts = tanggal.split("-");
       const year = dateParts[0];
       const month = dateParts[1];
       const day = dateParts[2];
@@ -418,7 +410,8 @@ const readDataTempraturePerMonth = async (req, res) => {
       Object.keys(data.main[monthKey]).forEach((weekKey) => {
         const suhu = data.main[monthKey][weekKey].suhu;
 
-        const rataRataSuhu = suhu.reduce((acc, val) => acc + val, 0) / suhu.length;
+        const rataRataSuhu =
+          suhu.reduce((acc, val) => acc + val, 0) / suhu.length;
 
         data.main[monthKey][weekKey].suhu = Math.round(rataRataSuhu);
       });
@@ -430,30 +423,29 @@ const readDataTempraturePerMonth = async (req, res) => {
   }
 };
 
-
-
 const readOneLastData = async (req, res) => {
   try {
-    const mainRef = db.collection('main');
+    const mainRef = db.collection("main");
 
-    const querySnapshot = await mainRef.orderBy('dateTime', 'desc').limit(1).get();
+    const querySnapshot = await mainRef
+      .orderBy("dateTime", "desc")
+      .limit(1)
+      .get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: 'No data found' });
+      return res.status(404).json({ message: "No data found" });
     }
 
     const lastDocument = querySnapshot.docs[0];
     const data = {
-      main: {
-        id: lastDocument.id,
-        suhu: lastDocument.data().suhu,
-        valueSuhu: lastDocument.data().valueSuhu,
-        udara: lastDocument.data().udara, 
-        valueUdara: lastDocument.data().valueUdara,
-        jam: lastDocument.data().jam,
-        tanggal: lastDocument.data().tanggal,
-        dateTime: lastDocument.data().dateTime,
-      },
+      id: lastDocument.id,
+      suhu: lastDocument.data().suhu,
+      valueSuhu: lastDocument.data().valueSuhu,
+      udara: lastDocument.data().udara,
+      valueUdara: lastDocument.data().valueUdara,
+      jam: lastDocument.data().jam,
+      tanggal: lastDocument.data().tanggal,
+      dateTime: lastDocument.data().dateTime,
     };
 
     res.json(data);
@@ -461,9 +453,6 @@ const readOneLastData = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-
-
 
 const createData = async (req, res) => {
   try {
@@ -473,39 +462,45 @@ const createData = async (req, res) => {
     const formattedTime = moment().format('hh:mm A');
     const formattedDate = moment().format('DD-MM-YYYY');
 
-    let valueUdara = ""; 
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; // Ensure two-digit format for minutes
+    const formattedHours = hours < 10 ? `0${hours}` : hours; // Ensure two-digit format for minutes
+    const formattedHour = parseFloat(`${formattedHours}.${formattedMinutes}`); // 
+
+    let valueUdara = "";
 
     if (udara <= 50) {
-      valueUdara = "Very Good"
-    } else if ( udara <= 100 ) {
-      valueUdara = "Good"
-    } else if ( udara <= 150 ) {
-      valueUdara = "Medium"
-    } else if ( udara <= 200 ) {
-      valueUdara = "Bad"
-    } else if ( udara <= 300 ) {
-      valueUdara = "Very Bad"
+      valueUdara = "Very Good";
+    } else if (udara <= 100) {
+      valueUdara = "Good";
+    } else if (udara <= 150) {
+      valueUdara = "Medium";
+    } else if (udara <= 200) {
+      valueUdara = "Bad";
+    } else if (udara <= 300) {
+      valueUdara = "Very Bad";
     } else {
-      valueUdara = "Very Very Bad"
+      valueUdara = "Very Very Bad";
     }
 
-    let valueSuhu = ""; 
+    let valueSuhu = "";
 
     if (suhu <= 0) {
-      valueSuhu = "Extreme Cold"
-    } else if ( suhu <= 10 ) {
-      valueSuhu = "Cold"
-    } else if ( suhu <= 20 ) {
-      valueSuhu = "Cool"
-    } else if ( suhu <= 30 ) {
-      valueSuhu = "Warm"
-    } else if ( suhu <= 40 ) {
-      valueSuhu = "Hot"
+      valueSuhu = "Extreme Cold";
+    } else if (suhu <= 10) {
+      valueSuhu = "Cold";
+    } else if (suhu <= 20) {
+      valueSuhu = "Cool";
+    } else if (suhu <= 30) {
+      valueSuhu = "Warm";
+    } else if (suhu <= 40) {
+      valueSuhu = "Hot";
     } else {
-      valueSuhu = "Extreme Hot"
+      valueSuhu = "Extreme Hot";
     }
 
-    const mainRef = db.collection('main'); 
+    const mainRef = db.collection("main");
 
     const mainDocRef = await mainRef.add({
       suhu: suhu,
@@ -524,31 +519,35 @@ const createData = async (req, res) => {
         valueSuhu: valueSuhu,
         udara: udara,
         valueUdara: valueUdara,
-        jam: formattedTime,
+        jam: formattedHour,
         tanggal: formattedDate,
         dateTime: currentTime,
       },
     };
 
     res.status(201).json({
-      message: 'Data added successfully',
+      message: "Data added successfully",
       data: responseData,
     });
   } catch (error) {
-    console.error(error); 
-    res.status(500).json({ error: 'An error occurred while processing your request' });
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while processing your request" });
   }
 };
 
-
-
-module.exports = { readData, createData, readOneLastData, readDataAirPerDay, readDataAirPerWeek, readDataAirPerMonth, readDataTempraturePerDay, readDataTempraturePerWeek, readDataTempraturePerMonth };
-
-
-
-
-
-
+module.exports = {
+  readData,
+  createData,
+  readOneLastData,
+  readDataAirPerDay,
+  readDataAirPerWeek,
+  readDataAirPerMonth,
+  readDataTempraturePerDay,
+  readDataTempraturePerWeek,
+  readDataTempraturePerMonth,
+};
 
 // Using Database Realtime
 
@@ -604,6 +603,5 @@ module.exports = { readData, createData, readOneLastData, readDataAirPerDay, rea
 //     res.status(500).json({ error: error.message });
 //   }
 // };
-
 
 // module.exports = { readData, createData };
