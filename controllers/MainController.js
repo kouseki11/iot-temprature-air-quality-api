@@ -568,45 +568,39 @@ const createData = async (req, res) => {
     const formattedTime = moment().format('HH.mm');
     const formattedDate = moment().format('DD-MM-YYYY');
 
-    const hours = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
-    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; // Ensure two-digit format for minutes
-    const formattedHours = hours < 10 ? `0${hours}` : hours; // Ensure two-digit format for minutes
-    const formattedHour = parseFloat(`${formattedHours}.${formattedMinutes}`); // 
-
-    let valueUdara = "";
+    let valueUdara = ""; 
 
     if (udara <= 50) {
-      valueUdara = "Very Good";
-    } else if (udara <= 100) {
-      valueUdara = "Good";
-    } else if (udara <= 150) {
-      valueUdara = "Medium";
-    } else if (udara <= 200) {
-      valueUdara = "Bad";
-    } else if (udara <= 300) {
-      valueUdara = "Very Bad";
+      valueUdara = "Very Good"
+    } else if ( udara <= 100 ) {
+      valueUdara = "Good"
+    } else if ( udara <= 150 ) {
+      valueUdara = "Medium"
+    } else if ( udara <= 200 ) {
+      valueUdara = "Bad"
+    } else if ( udara <= 300 ) {
+      valueUdara = "Very Bad"
     } else {
-      valueUdara = "Very Very Bad";
+      valueUdara = "Very Very Bad"
     }
 
-    let valueSuhu = "";
+    let valueSuhu = ""; 
 
     if (suhu <= 0) {
-      valueSuhu = "Extreme Cold";
-    } else if (suhu <= 10) {
-      valueSuhu = "Cold";
-    } else if (suhu <= 20) {
-      valueSuhu = "Cool";
-    } else if (suhu <= 30) {
-      valueSuhu = "Warm";
-    } else if (suhu <= 40) {
-      valueSuhu = "Hot";
+      valueSuhu = "Extreme Cold"
+    } else if ( suhu <= 10 ) {
+      valueSuhu = "Cold"
+    } else if ( suhu <= 20 ) {
+      valueSuhu = "Cool"
+    } else if ( suhu <= 30 ) {
+      valueSuhu = "Warm"
+    } else if ( suhu <= 40 ) {
+      valueSuhu = "Hot"
     } else {
-      valueSuhu = "Extreme Hot";
+      valueSuhu = "Extreme Hot"
     }
 
-    const mainRef = db.collection("main");
+    const mainRef = db.collection('main'); 
 
     const mainDocRef = await mainRef.add({
       suhu: suhu,
@@ -625,23 +619,22 @@ const createData = async (req, res) => {
         valueSuhu: valueSuhu,
         udara: udara,
         valueUdara: valueUdara,
-        jam: formattedHour,
+        jam: formattedTime,
         tanggal: formattedDate,
         dateTime: currentTime,
       },
     };
 
     res.status(201).json({
-      message: "Data added successfully",
+      message: 'Data added successfully',
       data: responseData,
     });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while processing your request" });
+    console.error(error); 
+    res.status(500).json({ error: 'An error occurred while processing your request' });
   }
 };
+
 
 module.exports = {
   readData,
