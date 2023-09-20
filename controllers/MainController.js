@@ -473,6 +473,12 @@ const createData = async (req, res) => {
     const formattedTime = moment().format('hh:mm A');
     const formattedDate = moment().format('DD-MM-YYYY');
 
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; // Ensure two-digit format for minutes
+    const formattedHours = hours < 10 ? `0${hours}` : hours; // Ensure two-digit format for minutes
+    const formattedHour = parseFloat(`${formattedHours}.${formattedMinutes}`); // 
+
     let valueUdara = ""; 
 
     if (udara <= 50) {
@@ -524,7 +530,7 @@ const createData = async (req, res) => {
         valueSuhu: valueSuhu,
         udara: udara,
         valueUdara: valueUdara,
-        jam: formattedTime,
+        jam: formattedHour,
         tanggal: formattedDate,
         dateTime: currentTime,
       },
