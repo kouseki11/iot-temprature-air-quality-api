@@ -1,9 +1,11 @@
 const admin = require("firebase-admin");
-const moment = require("moment");
+const moment = require("moment-timezone");
 const getWeekNumber = require("../utils/getWeekNumber");
 
 // Initialize Firebase Firestore
 const db = admin.firestore();
+
+moment.tz.setDefault('Asia/Jakarta');
 
 const readData = async (req, res) => {
   try {
@@ -612,7 +614,7 @@ const readDataAirPerMonth = async (req, res) => {
       const year = dateParts[0];
       const month = dateParts[1];
       const day = dateParts[2];
-      const week = getWeekNumber(new Date(year, month - 1, day));
+      const week = getWeekNumber(moment(new Date(year, month - 1, day)));
 
       // Create a key for the week in the format "Minggu {week}"
       const weekKey = `Minggu ${week}`;
@@ -699,7 +701,7 @@ const readDataTempraturePerMonth = async (req, res) => {
       const year = dateParts[0];
       const month = dateParts[1];
       const day = dateParts[2];
-      const week = getWeekNumber(new Date(year, month - 1, day));
+      const week = getWeekNumber(moment(new Date(year, month - 1, day)));
 
       // Create a key for the week in the format "Minggu {week}"
       const weekKey = `Minggu ${week}`;
@@ -791,7 +793,7 @@ const createData = async (req, res) => {
   try {
     const { suhu, udara } = req.body;
 
-    const currentTime = new Date();
+    const currentTime = moment(new Date())
     const formattedTime = moment().format("HH.mm");
     const formattedDate = moment().format("DD-MM-YYYY");
 
