@@ -104,7 +104,123 @@ const readAverageDataAirPerDay = async (req, res) => {
     const averageUdara = totalUdara / dataCount; // Calculate average udara
     const averageUdaraB = Math.round(averageUdara);
 
-    let valueAverageUdara = ''; // Declare valueAverageUdara as a variable
+    let valueAverageUdara = ""; // Declare valueAverageUdara as a variable
+
+    if (averageUdaraB <= 50) {
+      valueAverageUdara = "Very Good";
+    } else if (averageUdaraB <= 100) {
+      valueAverageUdara = "Good";
+    } else if (averageUdaraB <= 150) {
+      valueAverageUdara = "Medium";
+    } else if (averageUdaraB <= 200) {
+      valueAverageUdara = "Bad";
+    } else if (averageUdaraB <= 300) {
+      valueAverageUdara = "Very Bad";
+    } else {
+      valueAverageUdara = "Very Very Bad";
+    }
+
+    res.json({
+      averageUdara: averageUdaraB,
+      valueAverageUdara: valueAverageUdara, // Include valueAverageUdara in the response
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const readAverageDataAirPerWeek = async (req, res) => {
+  try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    const mainRef = db.collection("main");
+
+    // Query the Firestore collection for documents matching the specified "tanggal"
+    const querySnapshot = await mainRef
+    .where("tanggal", ">=", startDate)
+    .where("tanggal", "<=", endDate)
+    .get();
+
+    if (querySnapshot.empty) {
+      return res
+        .status(404)
+        .json({ message: "No data found for the specified date" });
+    }
+
+    let totalUdara = 0; // Initialize total udara
+    let dataCount = 0; // Initialize data count
+
+    querySnapshot.forEach((doc) => {
+      const item = {
+        udara: doc.data().udara,
+        valueUdara: doc.data().valueUdara,
+      };
+      totalUdara += doc.data().udara; // Add udara value to the total
+      dataCount++; // Increment data count
+    });
+
+    const averageUdara = totalUdara / dataCount; // Calculate average udara
+    const averageUdaraB = Math.round(averageUdara);
+
+    let valueAverageUdara = ""; // Declare valueAverageUdara as a variable
+
+    if (averageUdaraB <= 50) {
+      valueAverageUdara = "Very Good";
+    } else if (averageUdaraB <= 100) {
+      valueAverageUdara = "Good";
+    } else if (averageUdaraB <= 150) {
+      valueAverageUdara = "Medium";
+    } else if (averageUdaraB <= 200) {
+      valueAverageUdara = "Bad";
+    } else if (averageUdaraB <= 300) {
+      valueAverageUdara = "Very Bad";
+    } else {
+      valueAverageUdara = "Very Very Bad";
+    }
+
+    res.json({
+      averageUdara: averageUdaraB,
+      valueAverageUdara: valueAverageUdara, // Include valueAverageUdara in the response
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const readAverageDataAirPerMonth = async (req, res) => {
+  try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    const mainRef = db.collection("main");
+
+    // Query the Firestore collection for documents matching the specified "tanggal"
+    const querySnapshot = await mainRef
+      .where("tanggal", ">=", startDate)
+      .where("tanggal", "<=", endDate)
+      .get();
+
+    if (querySnapshot.empty) {
+      return res
+        .status(404)
+        .json({ message: "No data found for the specified date" });
+    }
+
+    let totalUdara = 0; // Initialize total udara
+    let dataCount = 0; // Initialize data count
+
+    querySnapshot.forEach((doc) => {
+      const item = {
+        udara: doc.data().udara,
+        valueUdara: doc.data().valueUdara,
+      };
+      totalUdara += doc.data().udara; // Add udara value to the total
+      dataCount++; // Increment data count
+    });
+
+    const averageUdara = totalUdara / dataCount; // Calculate average udara
+    const averageUdaraB = Math.round(averageUdara);
+
+    let valueAverageUdara = ""; // Declare valueAverageUdara as a variable
 
     if (averageUdaraB <= 50) {
       valueAverageUdara = "Very Good";
@@ -144,17 +260,17 @@ const readDataTempraturePerDay = async (req, res) => {
         .json({ message: "No data found for the specified date" });
     }
 
-    const data = []
+    const data = [];
 
     querySnapshot.forEach((doc) => {
-        const item = {
-          suhu: doc.data().suhu,
-          valueSuhu: doc.data().valueSuhu,
-          jam: doc.data().jam,
-          tanggal: doc.data().tanggal,
-          dateTime: doc.data().dateTime,
-        };
-        data.push(item)
+      const item = {
+        suhu: doc.data().suhu,
+        valueSuhu: doc.data().valueSuhu,
+        jam: doc.data().jam,
+        tanggal: doc.data().tanggal,
+        dateTime: doc.data().dateTime,
+      };
+      data.push(item);
     });
 
     res.json(data);
@@ -192,9 +308,9 @@ const readAverageDataTempraturePerDay = async (req, res) => {
     const averageSuhu = totalSuhu / dataCount; // Calculate average Suhu
     const averageSuhuB = Math.round(averageSuhu);
 
-    let valueAverageSuhu = ''; // Declare valueAverageSuhu as a variable
+    let valueAverageSuhu = ""; // Declare valueAverageSuhu as a variable
 
-      if (averageSuhuB <= 0) {
+    if (averageSuhuB <= 0) {
       valueAverageSuhu = "Extreme Cold";
     } else if (averageSuhuB <= 10) {
       valueAverageSuhu = "Cold";
@@ -217,6 +333,121 @@ const readAverageDataTempraturePerDay = async (req, res) => {
   }
 };
 
+const readAverageDataTempraturePerWeek = async (req, res) => {
+  try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    const mainRef = db.collection("main");
+
+    // Query the Firestore collection for documents matching the specified "tanggal"
+    const querySnapshot = await mainRef
+    .where("tanggal", ">=", startDate)
+    .where("tanggal", "<=", endDate)
+    .get();
+
+    if (querySnapshot.empty) {
+      return res
+        .status(404)
+        .json({ message: "No data found for the specified date" });
+    }
+
+    let totalSuhu = 0; // Initialize total Suhu
+    let dataCount = 0; // Initialize data count
+
+    querySnapshot.forEach((doc) => {
+      const item = {
+        suhu: doc.data().suhu,
+        valueSuhu: doc.data().valueSuhu,
+      };
+      totalSuhu += doc.data().suhu; // Add Suhu value to the total
+      dataCount++; // Increment data count
+    });
+
+    const averageSuhu = totalSuhu / dataCount; // Calculate average Suhu
+    const averageSuhuB = Math.round(averageSuhu);
+
+    let valueAverageSuhu = ""; // Declare valueAverageSuhu as a variable
+
+    if (averageSuhuB <= 0) {
+      valueAverageSuhu = "Extreme Cold";
+    } else if (averageSuhuB <= 10) {
+      valueAverageSuhu = "Cold";
+    } else if (averageSuhuB <= 20) {
+      valueAverageSuhu = "Cool";
+    } else if (averageSuhuB <= 30) {
+      valueAverageSuhu = "Warm";
+    } else if (averageSuhuB <= 40) {
+      valueAverageSuhu = "Hot";
+    } else {
+      valueAverageSuhu = "Extreme Hot";
+    }
+
+    res.json({
+      averageSuhu: averageSuhuB,
+      valueAverageSuhu: valueAverageSuhu, // Include valueAverageSuhu in the response
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const readAverageDataTempraturePerMonth = async (req, res) => {
+  try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    const mainRef = db.collection("main");
+
+    // Query the Firestore collection for documents matching the specified "tanggal"
+    const querySnapshot = await mainRef
+    .where("tanggal", ">=", startDate)
+    .where("tanggal", "<=", endDate)
+    .get();
+
+    if (querySnapshot.empty) {
+      return res
+        .status(404)
+        .json({ message: "No data found for the specified date" });
+    }
+
+    let totalSuhu = 0; // Initialize total Suhu
+    let dataCount = 0; // Initialize data count
+
+    querySnapshot.forEach((doc) => {
+      const item = {
+        suhu: doc.data().suhu,
+        valueSuhu: doc.data().valueSuhu,
+      };
+      totalSuhu += doc.data().suhu; // Add Suhu value to the total
+      dataCount++; // Increment data count
+    });
+
+    const averageSuhu = totalSuhu / dataCount; // Calculate average Suhu
+    const averageSuhuB = Math.round(averageSuhu);
+
+    let valueAverageSuhu = ""; // Declare valueAverageSuhu as a variable
+
+    if (averageSuhuB <= 0) {
+      valueAverageSuhu = "Extreme Cold";
+    } else if (averageSuhuB <= 10) {
+      valueAverageSuhu = "Cold";
+    } else if (averageSuhuB <= 20) {
+      valueAverageSuhu = "Cool";
+    } else if (averageSuhuB <= 30) {
+      valueAverageSuhu = "Warm";
+    } else if (averageSuhuB <= 40) {
+      valueAverageSuhu = "Hot";
+    } else {
+      valueAverageSuhu = "Extreme Hot";
+    }
+
+    res.json({
+      averageSuhu: averageSuhuB,
+      valueAverageSuhu: valueAverageSuhu, // Include valueAverageSuhu in the response
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 const readDataAirPerWeek = async (req, res) => {
   try {
@@ -286,7 +517,6 @@ const readDataAirPerWeek = async (req, res) => {
   }
 };
 
-
 const readDataTempraturePerWeek = async (req, res) => {
   try {
     const startDate = req.query.startDate;
@@ -303,50 +533,48 @@ const readDataTempraturePerWeek = async (req, res) => {
       return res.status(404).json({ message: "No data found" });
     }
 
-    const data = {
-      main: {},
-    };
+    const data = {};
 
     querySnapshot.forEach((doc) => {
       const tanggal = doc.data().tanggal;
       const suhu = Math.round(doc.data().suhu);
 
-      if (!data.main[tanggal]) {
-        data.main[tanggal] = {
+      if (!data[tanggal]) {
+        data[tanggal] = {
           suhu: [],
           valueSuhu: "",
         };
       }
 
-      data.main[tanggal].suhu.push(suhu);
+      data[tanggal].suhu.push(suhu);
 
       // Menghitung valueSuhu berdasarkan suhu
       if (suhu <= 0) {
-        data.main[tanggal].valueSuhu = "Extreme Cold";
+        data[tanggal].valueSuhu = "Extreme Cold";
       } else if (suhu <= 10) {
-        data.main[tanggal].valueSuhu = "Cold";
+        data[tanggal].valueSuhu = "Cold";
       } else if (suhu <= 20) {
-        data.main[tanggal].valueSuhu = "Cool";
+        data[tanggal].valueSuhu = "Cool";
       } else if (suhu <= 30) {
-        data.main[tanggal].valueSuhu = "Warm";
+        data[tanggal].valueSuhu = "Warm";
       } else if (suhu <= 40) {
-        data.main[tanggal].valueSuhu = "Hot";
+        data[tanggal].valueSuhu = "Hot";
       } else {
-        data.main[tanggal].valueSuhu = "Extreme Hot";
+        data[tanggal].valueSuhu = "Extreme Hot";
       }
     });
 
     // Menghitung rata-rata suhu dan udara per hari
-    Object.keys(data.main).forEach((tanggal) => {
-      const suhu = data.main[tanggal].suhu;
+    Object.keys(data).forEach((tanggal) => {
+      const suhu = data[tanggal].suhu;
 
       const rataRataSuhu =
         suhu.reduce((acc, val) => acc + val, 0) / suhu.length;
 
-      data.main[tanggal].rataRataSuhu = Math.round(rataRataSuhu);
+      data[tanggal].rataRataSuhu = Math.round(rataRataSuhu);
 
       // Menghapus array suhu dan udara asli jika tidak diperlukan
-      delete data.main[tanggal].suhu;
+      delete data[tanggal].suhu;
     });
 
     res.json(data);
@@ -360,15 +588,15 @@ const readDataAirPerMonth = async (req, res) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
 
-    const mainRef = db.collection("main");
+    const mainRef = db.collection('main');
 
     const querySnapshot = await mainRef
-      .where("tanggal", ">=", startDate)
-      .where("tanggal", "<=", endDate)
+      .where('tanggal', '>=', startDate)
+      .where('tanggal', '<=', endDate)
       .get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: "No data found" });
+      return res.status(404).json({ message: 'No data found' });
     }
 
     const data = {
@@ -380,7 +608,7 @@ const readDataAirPerMonth = async (req, res) => {
       const udara = Math.round(doc.data().udara);
 
       // Extract year, month, and week from the date
-      const dateParts = tanggal.split("-");
+      const dateParts = tanggal.split('-');
       const year = dateParts[0];
       const month = dateParts[1];
       const day = dateParts[2];
@@ -422,6 +650,7 @@ const readDataAirPerMonth = async (req, res) => {
       } else {
         data.main[monthKey][weekKey].valueUdara = "Very Very Bad";
       }
+
     });
 
     // Calculate the overall averages per month and week
@@ -429,8 +658,7 @@ const readDataAirPerMonth = async (req, res) => {
       Object.keys(data.main[monthKey]).forEach((weekKey) => {
         const udara = data.main[monthKey][weekKey].udara;
 
-        const rataRataUdara =
-          udara.reduce((acc, val) => acc + val, 0) / udara.length;
+        const rataRataUdara = udara.reduce((acc, val) => acc + val, 0) / udara.length;
 
         data.main[monthKey][weekKey].udara = Math.round(rataRataUdara);
       });
@@ -447,15 +675,15 @@ const readDataTempraturePerMonth = async (req, res) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
 
-    const mainRef = db.collection("main");
+    const mainRef = db.collection('main');
 
     const querySnapshot = await mainRef
-      .where("tanggal", ">=", startDate)
-      .where("tanggal", "<=", endDate)
+      .where('tanggal', '>=', startDate)
+      .where('tanggal', '<=', endDate)
       .get();
 
     if (querySnapshot.empty) {
-      return res.status(404).json({ message: "No data found" });
+      return res.status(404).json({ message: 'No data found' });
     }
 
     const data = {
@@ -467,7 +695,7 @@ const readDataTempraturePerMonth = async (req, res) => {
       const suhu = Math.round(doc.data().suhu);
 
       // Extract year, month, and week from the date
-      const dateParts = tanggal.split("-");
+      const dateParts = tanggal.split('-');
       const year = dateParts[0];
       const month = dateParts[1];
       const day = dateParts[2];
@@ -516,8 +744,7 @@ const readDataTempraturePerMonth = async (req, res) => {
       Object.keys(data.main[monthKey]).forEach((weekKey) => {
         const suhu = data.main[monthKey][weekKey].suhu;
 
-        const rataRataSuhu =
-          suhu.reduce((acc, val) => acc + val, 0) / suhu.length;
+        const rataRataSuhu = suhu.reduce((acc, val) => acc + val, 0) / suhu.length;
 
         data.main[monthKey][weekKey].suhu = Math.round(rataRataSuhu);
       });
@@ -565,42 +792,42 @@ const createData = async (req, res) => {
     const { suhu, udara } = req.body;
 
     const currentTime = new Date();
-    const formattedTime = moment().format('HH.mm');
-    const formattedDate = moment().format('DD-MM-YYYY');
+    const formattedTime = moment().format("HH.mm");
+    const formattedDate = moment().format("DD-MM-YYYY");
 
-    let valueUdara = ""; 
+    let valueUdara = "";
 
     if (udara <= 50) {
-      valueUdara = "Very Good"
-    } else if ( udara <= 100 ) {
-      valueUdara = "Good"
-    } else if ( udara <= 150 ) {
-      valueUdara = "Medium"
-    } else if ( udara <= 200 ) {
-      valueUdara = "Bad"
-    } else if ( udara <= 300 ) {
-      valueUdara = "Very Bad"
+      valueUdara = "Very Good";
+    } else if (udara <= 100) {
+      valueUdara = "Good";
+    } else if (udara <= 150) {
+      valueUdara = "Medium";
+    } else if (udara <= 200) {
+      valueUdara = "Bad";
+    } else if (udara <= 300) {
+      valueUdara = "Very Bad";
     } else {
-      valueUdara = "Very Very Bad"
+      valueUdara = "Very Very Bad";
     }
 
-    let valueSuhu = ""; 
+    let valueSuhu = "";
 
     if (suhu <= 0) {
-      valueSuhu = "Extreme Cold"
-    } else if ( suhu <= 10 ) {
-      valueSuhu = "Cold"
-    } else if ( suhu <= 20 ) {
-      valueSuhu = "Cool"
-    } else if ( suhu <= 30 ) {
-      valueSuhu = "Warm"
-    } else if ( suhu <= 40 ) {
-      valueSuhu = "Hot"
+      valueSuhu = "Extreme Cold";
+    } else if (suhu <= 10) {
+      valueSuhu = "Cold";
+    } else if (suhu <= 20) {
+      valueSuhu = "Cool";
+    } else if (suhu <= 30) {
+      valueSuhu = "Warm";
+    } else if (suhu <= 40) {
+      valueSuhu = "Hot";
     } else {
-      valueSuhu = "Extreme Hot"
+      valueSuhu = "Extreme Hot";
     }
 
-    const mainRef = db.collection('main'); 
+    const mainRef = db.collection("main");
 
     const mainDocRef = await mainRef.add({
       suhu: suhu,
@@ -626,15 +853,16 @@ const createData = async (req, res) => {
     };
 
     res.status(201).json({
-      message: 'Data added successfully',
+      message: "Data added successfully",
       data: responseData,
     });
   } catch (error) {
-    console.error(error); 
-    res.status(500).json({ error: 'An error occurred while processing your request' });
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while processing your request" });
   }
 };
-
 
 module.exports = {
   readData,
@@ -647,62 +875,9 @@ module.exports = {
   readDataTempraturePerWeek,
   readDataTempraturePerMonth,
   readAverageDataAirPerDay,
-  readAverageDataTempraturePerDay
+  readAverageDataAirPerWeek,
+  readAverageDataAirPerMonth,
+  readAverageDataTempraturePerDay,
+  readAverageDataTempraturePerWeek,
+  readAverageDataTempraturePerMonth
 };
-
-// Using Database Realtime
-
-// // controllers/combinedController.js
-// const admin = require('firebase-admin');
-
-// // Initialize Firebase Realtime Database
-// const db = admin.database();
-
-// const readData = async (req, res) => {
-//   try {
-//     const suhuRef = db.ref('suhu');
-//     const udaraRef = db.ref('udara');
-//     const tanggalRef = db.ref('tanggal');
-
-//     const [suhuSnapshot, udaraSnapshot, tanggalSnapshot] = await Promise.all([
-//       suhuRef.once('value'),
-//       udaraRef.once('value'),
-//       tanggalRef.once('value'),
-//     ]);
-
-//     const data = {
-//       suhu: suhuSnapshot.val(),
-//       udara: udaraSnapshot.val(),
-//       tanggal: tanggalSnapshot.val(),
-//     };
-
-//     res.json(data);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
-// const createData = async (req, res) => {
-//   try {
-//     const { suhu, udara } = req.body;
-
-//     // Get the current date and time
-//     const currentTime = new Date().toISOString();
-
-//     const suhuRef = db.ref('suhu');
-//     const udaraRef = db.ref('udara');
-//     const tanggalRef = db.ref('tanggal');
-
-//     await Promise.all([
-//       suhuRef.push({ value: suhu }),
-//       udaraRef.push({ value: udara }),
-//       tanggalRef.push({ timestamp: currentTime }),
-//     ]);
-
-//     res.status(201).send('Data added successfully');
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
-// module.exports = { readData, createData };
